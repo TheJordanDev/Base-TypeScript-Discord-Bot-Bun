@@ -31,6 +31,17 @@ class Bot extends Client {
 			this.loadCommand(command, filePath);
 		}
 	}
+	private loadCommand(command : BotCommand, filePath?: string) {
+		if (!('data' in command) || !('execute' in command)) {
+			console.log(`[WARNING] The command at ${filePath ?? 'UNKNOWN'} is missing a required "data" or "execute" property.`);
+			return;
+		}
+		if (command.data.name in client.commands.keys()) {
+			console.log(`[WARNING] The command ${command.data.name} is already registered.`);
+			return;
+		}
+		client.commands.set(command.data.name, command);
+	}
 
 	async loadEvents() : Promise<void> {
 		const foldersPath = PATH.join(__dirname, 'events');
@@ -41,6 +52,14 @@ class Bot extends Client {
 			const event : BotEvent = eventModule.default ?? eventModule;
 			this.loadEvent(event, filePath);
 		}
+	}
+	private loadEvent(event: BotEvent, filePath?: string) {
+		if (!('name' in event) || !('execute' in event)) {
+			console.log(`[WARNING] The event at ${filePath ?? 'UNKNOWN'} is missing a required "name" or "execute" property.`);
+			return;
+		}
+		if ('once' in event && event.once) this.once(event.name, event.execute);
+		else this.on(event.name, event.execute);
 	}
 
 	async loadModules() : Promise<void> {
@@ -57,32 +76,9 @@ class Bot extends Client {
 			}
 		}
 	}
-
-	private loadCommand(command : BotCommand, filePath?: string) {
-		if (!('data' in command) || !('execute' in command)) {
-			console.log(`[WARNING] The command at ${filePath ?? 'UNKNOWN'} is missing a required "data" or "execute" property.`);
-		}
-		if ('data' in command && 'execute' in command) {
-			if (command.data.name in client.commands.keys()) {
-				console.log(`[WARNING] The command ${command.data.name} is already registered.`);
-				return;
-			}
-			client.commands.set(command.data.name, command);
-		}
-	}
-
-	private loadEvent(event: BotEvent, filePath?: string) {
-		if (!('name' in event) || !('execute' in event)) {
-			console.log(`[WARNING] The event at ${filePath ?? 'UNKNOWN'} is missing a required "name" or "execute" property.`);
-			return;
-		}
-		if ('once' in event && event.once) this.once(event.name, event.execute);
-		else this.on(event.name, event.execute);
-	}
-
 	private loadModule(module: BotModule, filePath?: string) {
 		if (!('name' in module)) {
-			console.log(`[WARNING] The event at ${filePath ?? 'UNKNOWN'} is missing a required "name" or "execute" property.`);
+			console.log(`[WARNING] The module at ${filePath ?? 'UNKNOWN'} is missing a required "name" property.`);
 			return;
 		}
 		if (module.commands) {
