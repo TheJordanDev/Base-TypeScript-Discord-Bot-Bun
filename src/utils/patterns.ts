@@ -1,0 +1,1 @@
+export const youtubePattern = /^(https?:\/\/)?(www\.)?(m\.|music\.)?(youtube\.com|youtu\.?be)\/.+$/;
